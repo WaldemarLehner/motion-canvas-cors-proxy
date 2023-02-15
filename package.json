@@ -1,7 +1,7 @@
 {
-  "name": "motion-canvas-component-library",
+  "name": "motion-canvas-cors-proxy",
   "version": "0.0.0",
-  "description": "",
+  "description": "Provides a proxy to allow motion-canvas to consume remote resources.",
   "scripts": {
     "prepare": "husky install",
     "build": "rollup -c rollup.config.mjs",
@@ -47,5 +47,9 @@
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",
     "*.{js,jsx,ts,tsx,md,scss}": "prettier --write"
+  },
+  "dependencies": {
+    "@types/node": "^18.13.0",
+    "axios": "^1.3.3"
   }
 }
