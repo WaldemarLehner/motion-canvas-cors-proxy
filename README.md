@@ -1,45 +1,101 @@
-# My First Motion Canvas Component Library
+# Motion Canvas CORS Proxy
 
-## Why use this repo?
+A Vite Plugin to proxy remote content to circumvent `Tainted canvas` errors.
 
-This repo gives you a couple benefits over starting from scratch:
+## Why is this needed
 
-- The same linting options as main motion-canvas code, which helps to keep the
-  community on the same page.
-- A build pipeline in place with:
-  - support for `UMD` modules, which gives you automatic support for future
-    improvements to the ecosystem
-  - automatic watch support, allowing you to develop quickly
-  - automatic compilation and splitting for your TypeScript, allowing it to be
-    used in a variety of environments.
+While Motion Canvas has no issues displaying remote content (content not loaded
+via vite from localhost) during the preview, it will throw an error when you try
+to render the video.
 
-## Getting Started
+This is because remote content "taints" the canvas. Trying to read a tainted
+canvas is disallowed due to security concerns. You can read more about it here:
+https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image
 
-1. Clone this repo.
-1. Run
-   `git remote add upstream https://github.com/hhenrichsen/motion-canvas-component-library-template`
-   to gain the ability to update when this repo gets enhancements (via
-   `git pull upstream main`)
-1. Update the package name in `package.json` and run `npm install`. I recommend
-   something like `@username/library-name`.
-1. Update the UMD name of this package in `rollup.config.mjs`
-1. Update the title of this README.
-1. Run `npm run build watch` -- this will create some files in the `lib` folder
-   for you, and rebuild them here when you make changes.
-1. Start developing a component in the `src` folder, and make sure that it's
-   exported from the `index.ts` file.
-1. Run `npm install <path to this repo>` in a motion canvas project -- this will
-   add a link to this repo in your project.
-1. Import components from this library and verify that they work:
+This Plugin circumvents this issue by getting the requested resource from the
+local server that is used to run Motion Canvas.
+
+Use the `viaProxy`-Function to access remote data.
+
+Example:
 
 ```tsx
-import {SwitchComponent} from '@username/library-name';
+scene.add(
+  <Image src={viaProxy('https://via.placeholder.com/300.png/09f/fff')} />,
+);
+// gets rewritten with viaProxy to
+scene.add(
+  <Image
+    src={'/cors-proxy/https%3A%2F%2Fvia.placeholder.com%2F300.png%2F09f%2Ffff'}
+  />,
+);
 ```
 
-## Publishing to NPM
+## Installation
 
-1. Run `npm run build` one last time.
-1. Verify that the package works when installed with
-   `npm install <path to this repo>`.
-1. Run `npm publish --access public`. You may have to authenticate if this is
-   your first time publishing a package.
+`npm i ????????????????`
+
+### vite.config.js
+
+Add the Plugin
+
+```diff
++ import {motionCanvasCorsProxyPlugin} from '???????????????';
+  export default defineConfig({
+    plugins: [
+      tsconfigPaths(),
+      motionCanvas({
+        project: ['./test/src/project.ts'],
+      }),
++     motionCanvasCorsProxyPlugin({}),
+    ],
+  });
+
+```
+
+### Your Scene
+
+Simply wrap the remote resource in the `viaProxy` Function
+
+```diff
++  import {viaProxy} from '???????????????????????'
+   scene.add(
+-      <Image src={https://via.placeholder.com/300.png/09f/fff"} />
++      <Image src={viaProxy("https://via.placeholder.com/300.png/09f/fff")} />
+   )
+```
+
+## Configuration
+
+The plugin accepts a config object which can be passed as an argument
+
+```ts
+// example
+motionCanvasProxyPlugin({
+  allowedMimeTypes: ['image/png', 'image/webp'],
+  whiteListHosts: ['imgur.com'],
+});
+```
+
+### allowedMimeTypes
+
+Defines which types of resources are allowed
+
+**default**: `["image/*", "video/*"]`
+
+Passing an empty array will allow any resource type.  
+All entries in the array _must_ have a left and right segment, separated by a
+`/`.
+
+### whiteListHosts
+
+Defines which Hosts are allowed be proxied.
+
+**default**: `[]`
+
+Passing an empty array will allow all hosts.  
+Note that the host is anything between the protocol (e.g. `https://`) and the
+first `/`.
+
+For `https://via.placeholder.com/300.png/09f/fff"` `via.placeholder.com` is the
+host.
