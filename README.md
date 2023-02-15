@@ -6,7 +6,8 @@ A Vite Plugin to proxy remote content to circumvent `Tainted canvas` errors.
 
 While Motion Canvas has no issues displaying remote content (content not loaded
 via vite from localhost) during the preview, it will throw an error when you try
-to render the video.
+to render the video. (see
+[motion-canvas#338](https://github.com/motion-canvas/motion-canvas/issues/338))
 
 This is because remote content "taints" the canvas. Trying to read a tainted
 canvas is disallowed due to security concerns. You can read more about it here:
@@ -35,9 +36,7 @@ scene.add(
 
 `npm i ????????????????`
 
-### vite.config.js
-
-Add the Plugin
+Add the Plugin in your `vite.config.js` or `vite.config.ts`
 
 ```diff
 + import {motionCanvasCorsProxyPlugin} from '???????????????';
@@ -53,7 +52,7 @@ Add the Plugin
 
 ```
 
-### Your Scene
+## Usage
 
 Simply wrap the remote resource in the `viaProxy` Function
 
@@ -71,7 +70,7 @@ The plugin accepts a config object which can be passed as an argument
 
 ```ts
 // example
-motionCanvasProxyPlugin({
+motionCanvasCorsProxyPlugin({
   allowedMimeTypes: ['image/png', 'image/webp'],
   whiteListHosts: ['imgur.com'],
 });
